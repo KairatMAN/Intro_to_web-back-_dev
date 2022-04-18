@@ -1,0 +1,385 @@
+"[<div class=""article-formatted-body article-formatted-body_version-1""><div xmlns=""http://www.w3.org/1999/xhtml""><img data-blurred=""true"" data-src=""https://habrastorage.org/getpro/habr/post_images/ba3/254/0ba/ba32540bab550e3f4f1f33db01f28d00.jpg"" src=""https://habrastorage.org/r/w780q1/getpro/habr/post_images/ba3/254/0ba/ba32540bab550e3f4f1f33db01f28d00.jpg""/><br/>
+<br/>
+Если вы читаете эту статью, вероятно, вы уже знакомы с возможностями, которые открываются при использовании API (Application Programming Interface).<br/>
+<br/>
+Добавив в свое приложение один из многих открытых API, вы можете расширить функциональность этого приложения либо же дополнить его нужными данными. Но что, если вы разработали уникальную функцию, которой хотите поделиться с коммьюнити?<br/>
+<a name=""habracut""></a> <br/>
+Ответ прост: нужно <a href=""https://blog.rapidapi.com/20-tutorials-on-how-to-create-your-own-api-sorted-by-programming-language/"">создать собственный API</a>.<br/>
+<br/>
+Несмотря на то, что это поначалу кажется сложной задачей, на самом деле всё просто. Мы расскажем, как это сделать с помощью Python.<br/>
+<br/>
+<h3>Что нужно для начала работы</h3><br/>
+Для разработки API необходимы:<br/>
+<br/>
+<ul>
+<li>Python 3;</li>
+<li><a href=""https://palletsprojects.com/p/flask/"">Flask</a> — простой и легкий в использовании фреймворк для создания веб-приложений;</li>
+<li><a href=""https://flask-restful.readthedocs.io/en/latest/"">Flask-RESTful</a> — расширение для Flask, которое позволяет разработать REST API быстро и с минимальной настройкой. </li>
+</ul><br/>
+Установка выполняется командой:<br/>
+<br/>
+<pre><code class=""python"">pip install flask-restful</code></pre><br/>
+<blockquote><b>Рекомендуем бесплатный интенсив по программированию для начинающих:</b><br/>
+<a href=""https://webinar.skillbox.ru/csharp/?utm_source=habr-com&amp;utm_medium=banners&amp;utm_campaign=all_all_habr-com_banners_banners_intensive-34_all_code_skillbox&amp;utm_content=2019-08-22"">Разработка telegram-бота на C#</a> — 26–28 августа. <i>Бесплатный интенсив, который позволяет разобраться в том, как работают боты-помощники, в особенностях работы с API Telegram и прочих нюансах. Трое лучших участников получат от Skillbox 30 000 рублей</i>.<br/>
+</blockquote> <b>Перед тем как начать</b><br/>
+<br/>
+Мы собираемся разработать RESTful API с базовой <a href=""https://blog.rapidapi.com/api-glossary/crud/"">CRUID-функциональностью</a>.<br/>
+<br/>
+Чтобы полностью понять задачу, давайте разберемся с двумя терминами, упомянутыми выше.<br/>
+<br/>
+<b>Что такое REST?</b><br/>
+<br/>
+REST API (Representational State Transfer) — это API, которое использует HTTP-запросы для обмена данными.<br/>
+<br/>
+REST API должны соответствовать определенным критериям:<br/>
+<br/>
+<ul>
+<li>Архитектура клиент-сервер: клиент взаимодействует с пользовательским интерфейсом, а сервер — с бэкендом и хранилищем данных. Клиент и сервер независимы, любой из них может быть заменен отдельно от другого.</li>
+<li>Stateless — никакие клиентские данные не сохраняются на сервере. Состояние сеанса хранится на стороне клиента.</li>
+<li>Кэшируемость — клиенты могут кэшировать ответы сервера для улучшения общей производительности.</li>
+</ul> <br/>
+<b>Что такое CRUD?</b><br/>
+<br/>
+<b>CRUD </b>— концепция программирования, которая описывает четыре базовых действия (create, read, update и delete).<br/>
+<br/>
+В REST API типы запросов и методы запроса отвечают за такие действия, как post, get, put, delete.<br/>
+<br/>
+Теперь, когда мы разобрались с базовыми терминами, можно приступить к созданию API.<br/>
+<br/>
+<h3>Разработка</h3><br/>
+Давайте создадим репозиторий цитат об искусственном интеллекте. ИИ — одна из наиболее активно развивающихся технологий сегодня, а Python — популярный инструмент для работы с ИИ.<br/>
+<br/>
+С этим API разработчик Python сможет быстро получать информацию об ИИ и вдохновляться новыми достижениями. Если у разработчика есть ценные мысли по этой теме, он сможет добавлять их в репозиторий.<br/>
+<br/>
+Начнем с импорта необходимых модулей и настройки Flask:<br/>
+<br/>
+<pre><code class=""python"">from flask import Flask
+from flask_restful import Api, Resource, reqparse
+import random
+app = Flask(__name__)
+api = Api(app)</code></pre> <br/>
+В этом сниппете Flask, Api и Resource — классы, которые нам нужны.<br/>
+<br/>
+Reqparse — это интерфейс парсинга запросов Flask-RESTful… Также понадобится модуль random для отображения случайной цитаты.<br/>
+<br/>
+Теперь мы создадим репозиторий цитат об ИИ.<br/>
+<br/>
+Каждая запись репо будет содержать:<br/>
+<br/>
+<ul>
+<li>цифровой ID;</li>
+<li>имя автора цитаты;</li>
+<li>цитату.</li>
+</ul> <br/>
+Поскольку это лишь пример для обучения, мы сохраним все записи в списке Python. В реальном же приложении вместо этого мы скорее всего использовали бы базу данных.<br/>
+<br/>
+<pre><code class=""python"">ai_quotes = [
+    {
+        ""id"": 0,
+        ""author"": ""Kevin Kelly"",
+        ""quote"": ""The business plans of the next 10,000 startups are easy to forecast: "" +
+                 ""Take X and add AI.""
+    },
+    {
+        ""id"": 1,
+        ""author"": ""Stephen Hawking"",
+        ""quote"": ""The development of full artificial intelligence could "" +
+                 ""spell the end of the human race… "" +
+                 ""It would take off on its own, and re-design "" +
+                 ""itself at an ever increasing rate. "" +
+                 ""Humans, who are limited by slow biological evolution, "" +
+                 ""couldn't compete, and would be superseded.""
+    },
+    {
+        ""id"": 2,
+        ""author"": ""Claude Shannon"",
+        ""quote"": ""I visualize a time when we will be to robots what "" +
+                 ""dogs are to humans, "" +
+                 ""and I’m rooting for the machines.""
+    },
+    {
+        ""id"": 3,
+        ""author"": ""Elon Musk"",
+        ""quote"": ""The pace of progress in artificial intelligence "" +
+                 ""(I’m not referring to narrow AI) "" +
+                 ""is incredibly fast. Unless you have direct "" +
+                 ""exposure to groups like Deepmind, "" +
+                 ""you have no idea how fast — it is growing "" +
+                 ""at a pace close to exponential. "" +
+                 ""The risk of something seriously dangerous "" +
+                 ""happening is in the five-year timeframe."" +
+                 ""10 years at most.""
+    },
+    {
+        ""id"": 4,
+        ""author"": ""Geoffrey Hinton"",
+        ""quote"": ""I have always been convinced that the only way "" +
+                 ""to get artificial intelligence to work "" +
+                 ""is to do the computation in a way similar to the human brain. "" +
+                 ""That is the goal I have been pursuing. We are making progress, "" +
+                 ""though we still have lots to learn about "" +
+                 ""how the brain actually works.""
+    },
+    {
+        ""id"": 5,
+        ""author"": ""Pedro Domingos"",
+        ""quote"": ""People worry that computers will "" +
+                 ""get too smart and take over the world, "" +
+                 ""but the real problem is that they're too stupid "" +
+                 ""and they've already taken over the world.""
+    },
+    {
+        ""id"": 6,
+        ""author"": ""Alan Turing"",
+        ""quote"": ""It seems probable that once the machine thinking "" +
+                 ""method had started, it would not take long "" +
+                 ""to outstrip our feeble powers… "" +
+                 ""They would be able to converse "" +
+                 ""with each other to sharpen their wits. "" +
+                 ""At some stage therefore, we should "" +
+                 ""have to expect the machines to take control.""
+    },
+    {
+        ""id"": 7,
+        ""author"": ""Ray Kurzweil"",
+        ""quote"": ""Artificial intelligence will reach "" +
+                 ""human levels by around 2029. "" +
+                 ""Follow that out further to, say, 2045, "" +
+                 ""we will have multiplied the intelligence, "" +
+                 ""the human biological machine intelligence "" +
+                 ""of our civilization a billion-fold.""
+    },
+    {
+        ""id"": 8,
+        ""author"": ""Sebastian Thrun"",
+        ""quote"": ""Nobody phrases it this way, but I think "" +
+                 ""that artificial intelligence "" +
+                 ""is almost a humanities discipline. It's really an attempt "" +
+                 ""to understand human intelligence and human cognition.""
+    },
+    {
+        ""id"": 9,
+        ""author"": ""Andrew Ng"",
+        ""quote"": ""We're making this analogy that AI is the new electricity."" +
+                 ""Electricity transformed industries: agriculture, "" +
+                 ""transportation, communication, manufacturing.""
+    }
+]</code></pre> <br/>
+Теперь нужно создать ресурсный класс Quote, который будет определять операции эндпоинтов нашего API. Внутри класса нужно заявить четыре метода: get, post, put, delete.<br/>
+<br/>
+<b>Начнем с метода GET</b><br/>
+<br/>
+Он дает возможность получить определенную цитату путем указания ее ID или же случайную цитату, если ID не указан.<br/>
+<br/>
+<pre><code class=""python"">class Quote(Resource):
+    def get(self, id=0):
+        if id == 0:
+            return random.choice(ai_quotes), 200
+        for quote in ai_quotes:
+            if(quote[""id""] == id):
+                return quote, 200
+        return ""Quote not found"", 404</code></pre> <br/>
+Метод GET возвращает случайную цитату, если ID содержит дефолтное значение, т.е. при вызове метода ID не был задан.<br/>
+<br/>
+Если он задан, то метод ищет среди цитат и находит ту, которая содержит заданный ID. Если же ничего не найдено, выводится сообщение “Quote not found, 404”.<br/>
+<br/>
+Помните: метод возвращает HTTP-статус 200 в случае успешного запроса и 404, если запись не найдена.<br/>
+<br/>
+Теперь давайте создадим POST-метод для добавления новой цитаты в репозиторий<br/>
+<br/>
+Он будет получать идентификатор каждой новой цитаты при вводе. Кроме того, POST будет использовать reqparse для парсинга параметров, которые будут идти в теле запроса (автор и текст цитаты).<br/>
+<br/>
+<pre><code class=""python"">def post(self, id):
+      parser = reqparse.RequestParser()
+      parser.add_argument(""author"")
+      parser.add_argument(""quote"")
+      params = parser.parse_args()
+      for quote in ai_quotes:
+          if(id == quote[""id""]):
+              return f""Quote with id {id} already exists"", 400
+      quote = {
+          ""id"": int(id),
+          ""author"": params[""author""],
+          ""quote"": params[""quote""]
+      }
+      ai_quotes.append(quote)
+      return quote, 201</code></pre> <br/>
+В коде выше POST-метод принял ID цитаты. Затем, используя reqparse, он получил автора и цитату из запроса, сохранив их в словаре params.<br/>
+<br/>
+Если цитата с указанным ID уже существует, то метод выводит соответствующее сообщение и код 400.<br/>
+<br/>
+Если цитата с указанным ID еще не была создана, метод создает новую запись с указанным ID и автором, а также другими параметрами. Затем он добавляет запись в список ai_quotes и возвращает запись с новой цитатой вместе с кодом 201.<br/>
+<br/>
+Теперь создаем PUT-метод для изменения существующей цитаты в репозитории<br/>
+<br/>
+<pre><code class=""python"">def put(self, id):
+      parser = reqparse.RequestParser()
+      parser.add_argument(""author"")
+      parser.add_argument(""quote"")
+      params = parser.parse_args()
+      for quote in ai_quotes:
+          if(id == quote[""id""]):
+              quote[""author""] = params[""author""]
+              quote[""quote""] = params[""quote""]
+              return quote, 200
+      
+      quote = {
+          ""id"": id,
+          ""author"": params[""author""],
+          ""quote"": params[""quote""]
+      }
+      
+      ai_quotes.append(quote)
+      return quote, 201</code></pre> <br/>
+PUT-метод, аналогично предыдущему примеру, берет ID и input и парсит параметры цитаты, используя reqparse.<br/>
+<br/>
+Если цитата с указанным ID существует, метод обновит ее с новыми параметрами, а затем выведет обновленную цитату с кодом 200. Если цитаты с указанным ID еще нет, будет создана новая запись с кодом 201.<br/>
+<br/>
+Наконец, давайте создадим DELETE-метод для удаления цитаты, которая уже не вдохновляет<br/>
+<br/>
+<pre><code class=""python"">def delete(self, id):
+      global ai_quotes
+      ai_quotes = [qoute for qoute in ai_quotes if qoute[""id""] != id]
+      return f""Quote with id {id} is deleted."", 200</code></pre> <br/>
+Этот метод получает ID цитаты при вводе и обновляет список ai_quotes, используя общий список.<br/>
+<br/>
+Теперь, когда мы создали все методы, всё, что нам нужно, — просто добавить resource к API, задать путь и запустить Flask.<br/>
+<br/>
+<pre><code class=""python"">api.add_resource(Quote, ""/ai-quotes"", ""/ai-quotes/"", ""/ai-quotes/&lt;int:id&gt;"")
+if __name__ == '__main__':
+    app.run(debug=True)</code></pre> <br/>
+Наш REST API Service готов!<br/>
+<br/>
+Далее мы можем сохранить код в файл app.py, запустив его в консоли при помощи команды:<br/>
+<br/>
+<pre><code class=""python"">python3 app.py</code></pre> <br/>
+Если все хорошо, то мы получим нечто вроде этого:<br/>
+<br/>
+<i>* Debug mode: on<br/>
+* Running on <a href=""http://127.0.0.1"">127.0.0.1</a>:5000/ (Press CTRL+C to quit)<br/>
+* Restarting with stat<br/>
+* Debugger is active!<br/>
+* Debugger PIN: XXXXXXX</i><br/>
+<br/>
+<b>Тестируем API</b><br/>
+<br/>
+После того как API создан, его нужно протестировать.<br/>
+<br/>
+Сделать это можно при помощи консольной утилиты curl или клиента Insomnia REST либо же опубликовав API на Rapid API.<br/>
+<br/>
+<img data-src=""https://habrastorage.org/getpro/habr/post_images/07d/0ba/ac3/07d0baac377bd2cd2667b7c457740e64.png"" src=""https://habrastorage.org/r/w1560/getpro/habr/post_images/07d/0ba/ac3/07d0baac377bd2cd2667b7c457740e64.png""/><br/>
+<br/>
+<b>Публикуем наш API</b><br/>
+<br/>
+RapidAPI — самый большой в мире маркетплейс с более чем 10 000 API (и около 1 млн разработчиков).<br/>
+<br/>
+RapidAPI не только предоставляет единый интерфейс для работы со сторонними API, но и даtт возможность быстро и без проблем опубликовать ваш собственный API.<br/>
+<br/>
+Для того чтобы <a href=""https://rapidapi.com/api-providers"">сделать это</a>, сначала нужно опубликовать его на каком-нибудь сервере в сети. В нашем случае воспользуемся <a href=""https://www.heroku.com/"">Heroku</a>. Работа с ним не должна вызвать никаких сложностей, (<a href=""https://devcenter.heroku.com/articles/getting-started-with-python"">узнать о нём больше можно здесь</a>).<br/>
+<br/>
+<b>Как опубликовать ваш API на Heroku</b><br/>
+<br/>
+<i><b>1. Устанавливаем Heroku.</b></i><br/>
+<br/>
+Первым делом нужно зарегистрироваться и установить Heroku Command Line Interface (CLI). Это работает на Ubuntu 16+.<br/>
+<br/>
+<i>sudo snap install heroku --classic</i><br/>
+<br/>
+Затем логинимся:<br/>
+<br/>
+<i>heroku login</i><br/>
+<br/>
+<i><b>2. Добавляем необходимые файлы.</b></i><br/>
+<br/>
+Теперь нужно добавить файлы для публикации в папку в нашем приложении:<br/>
+<br/>
+<ul>
+<li>requirements.txt со списком необходимых Python модулей;</li>
+<li>Procfile, который указывает, какие команды должны быть выполнены для запуска приложения;</li>
+<li>.gitignore — для исключения файлов, которые не нужны на сервере.</li>
+</ul><br/>
+Файл requirements.txt будет содержать следующие строки:<br/>
+<br/>
+<ul>
+<li>flask</li>
+<li>flask-restful</li>
+<li>gunicorn</li>
+</ul> <br/>
+Пожалуйста, обратите внимание: мы добавили gunicorn (Python WSGI HTTP Server) в список, поскольку нужно запустить наше приложение на сервере.<br/>
+<br/>
+Procfile будет содержать:<br/>
+<br/>
+<i>web: gunicorn app:app</i><br/>
+<br/>
+Содержимое .gitignore:<br/>
+<br/>
+<pre><code class=""1c"">*.pyc
+__pycache__/</code></pre><br/>
+Теперь, когда созданы файлы, давайте инициализируем git-репо и закоммитим:<br/>
+<br/>
+<pre><code class=""plaintext"">git init
+git add
+git commit -m ""First API commit""</code></pre><br/>
+<i><b>3. Создаем новое Heroku-приложение.</b></i><br/>
+<br/>
+<pre><code class=""plaintext"">heroku create</code></pre><br/>
+Отправляем master branch в удаленный репо Heroku:<br/>
+<br/>
+<pre><code class=""plaintext"">git push heroku master</code></pre><br/>
+Теперь можно начать, открыв API Service при помощи команд:<br/>
+<br/>
+<pre><code class=""plaintext"">heroku ps:scale web=1
+heroku open
+ </code></pre><br/>
+API будет доступно по адресу <a href=""https://your-random-heroku-name.herokuapp.com/ai-quotes/"">your-random-heroku-name.herokuapp.com/ai-quotes</a>.<br/>
+<br/>
+<b>Как добавить ваш Python API в маркетплейс RapidAPI</b><br/>
+<br/>
+После того как API-сервис опубликован на Heroku, можно добавить его к Rapid API. Здесь <a href=""https://docs.rapidapi.com/docs/getting-started"">подробная документация</a> по этой теме.<br/>
+<br/>
+<i><b>1. Создаем аккаунт RapidAPI.</b></i> <br/>
+<br/>
+<img data-src=""https://habrastorage.org/getpro/habr/post_images/f3a/35d/013/f3a35d01372d9c998e7508a59b9a7d69.png"" src=""https://habrastorage.org/r/w1560/getpro/habr/post_images/f3a/35d/013/f3a35d01372d9c998e7508a59b9a7d69.png""/><br/>
+<br/>
+Регистрируем бесплатную учетную запись — это можно сделать при помощи Facebook, Google, GitHub. <br/>
+<br/>
+<img data-src=""https://habrastorage.org/getpro/habr/post_images/4be/9c2/c7d/4be9c2c7da982571aa16f7e715784409.png"" src=""https://habrastorage.org/r/w1560/getpro/habr/post_images/4be/9c2/c7d/4be9c2c7da982571aa16f7e715784409.png""/><br/>
+<br/>
+<i><b>2. Добавляем API в панель управления.</b></i><br/>
+<br/>
+<img data-src=""https://habrastorage.org/getpro/habr/post_images/b38/733/cc5/b38733cc584694eabd37b360a44d42ea.png"" src=""https://habrastorage.org/r/w1560/getpro/habr/post_images/b38/733/cc5/b38733cc584694eabd37b360a44d42ea.png""/><br/>
+<br/>
+<i><b>3. Далее вводим общую информацию о своем API.</b></i><br/>
+<br/>
+<img data-src=""https://habrastorage.org/getpro/habr/post_images/414/804/fd7/414804fd7b343aeb691fed695f16e392.png"" src=""https://habrastorage.org/r/w1560/getpro/habr/post_images/414/804/fd7/414804fd7b343aeb691fed695f16e392.png""/><br/>
+<br/>
+<i><b>4. После нажатия “Add API” появляется новая страничка, где можно ввести информацию о нашем API.</b></i><br/>
+<br/>
+<img data-src=""https://habrastorage.org/getpro/habr/post_images/b39/9dd/c4d/b399ddc4d329fab9e95cf77f34dbd583.png"" src=""https://habrastorage.org/r/w1560/getpro/habr/post_images/b39/9dd/c4d/b399ddc4d329fab9e95cf77f34dbd583.png""/><br/>
+<br/>
+<i><b>5. Теперь можно либо вручную ввести эндпоинты API, либо загрузить <a href=""https://blog.rapidapi.com/whats-new-at-rapidapi-added-features-and-updates-july-2019/"">swagger-file</a> при помощи OpenAPI.</b></i><br/>
+<br/>
+<img data-src=""https://habrastorage.org/getpro/habr/post_images/3f7/1e6/950/3f71e695060c691e115bc4c54b9f08d8.png"" src=""https://habrastorage.org/r/w1560/getpro/habr/post_images/3f7/1e6/950/3f71e695060c691e115bc4c54b9f08d8.png""/><br/>
+<br/>
+Ну а теперь нужно задать эндпоинты нашего API на странице Endpoints. В нашем случае эндпоинты соответствуют концепции CRUD (get, post, put, delete).<br/>
+<br/>
+<img data-src=""https://habrastorage.org/getpro/habr/post_images/42a/c79/eb7/42ac79eb7ba7699e71d93bf79030d0b6.png"" src=""https://habrastorage.org/r/w1560/getpro/habr/post_images/42a/c79/eb7/42ac79eb7ba7699e71d93bf79030d0b6.png""/><br/>
+<br/>
+Далее нужно создать эндпоинт GET AI Quote, который выводит случайную цитату (в том случае, если ID дефолтный) или цитату для указанного ID.<br/>
+<br/>
+Для создания эндпоинта нужно нажать кнопку “Create Endpoint”.<br/>
+<br/>
+<img data-src=""https://habrastorage.org/getpro/habr/post_images/a7b/82b/ef1/a7b82bef117a91a931584c6c07c63a89.png"" src=""https://habrastorage.org/r/w1560/getpro/habr/post_images/a7b/82b/ef1/a7b82bef117a91a931584c6c07c63a89.png""/><br/>
+<br/>
+Повторяем этот процесс для всех других эндпоинтов API. На этом всё! Поздравляю, вы опубликовали ваш API!<br/>
+<br/>
+Если все хорошо, страничка API будет выглядеть как-то так:<br/>
+<br/>
+<img data-src=""https://habrastorage.org/getpro/habr/post_images/83e/14e/200/83e14e2002bd3a6b85148557c79cb050.png"" src=""https://habrastorage.org/r/w1560/getpro/habr/post_images/83e/14e/200/83e14e2002bd3a6b85148557c79cb050.png""/><br/>
+<br/>
+<h3>Заключение</h3><br/>
+В этой статье мы изучили процесс создания собственного RESTful API Service на Python, вместе с процессом публикации API в облаке Heroku и добавлением его в каталог RapidAPI.<br/>
+<br/>
+Но в тестовом варианте были показаны только базовые принципы разработки API — такие нюансы, как безопасность, отказоустойчивость и масштабируемость, не рассматривались.<br/>
+<br/>
+При разработке реального API все это нужно учитывать.</div></div>]"

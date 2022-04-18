@@ -20,4 +20,4 @@ for quote in quotes:
     print(counter,")",sep="")
     print(text.get_text(),author.get_text(),sep="\tby  ",end="\n")
     print("Tags:",tags['content'])
-# print(html_data.get_text())
+# print(html_data.get_text())re
